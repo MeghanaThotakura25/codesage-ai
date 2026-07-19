@@ -1,0 +1,42 @@
+venv/ #It can be recreated by anyone.
+__pycache__/ #temporary Python cache.
+*.pyc #Compiled Python files.
+.env #Will contain secrets like database passwords and API keys.
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+venv/
+.venv/
+
+# Environment Variables
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
