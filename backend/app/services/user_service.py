@@ -1,19 +1,21 @@
+print("***** USER_SERVICE LOADED *****")
+
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from app.models.user import User
 from app.schemas.user_schema import UserCreate
 from app.utils.security import hash_password, verify_password
 from app.utils.jwt_handler import create_access_token
 
-from fastapi import HTTPException
 
-from app.utils.security import verify_password
-from app.utils.jwt_handler import create_access_token
-from app.schemas.user_schema import UserCreate
-
-
-def create_user(db: Session, user: UserCreate):
+# ==========================
+# Register User
+# ==========================
+def register_user(user: UserCreate, db: Session):
+    """
+    Registers a new user.
+    """
 
     # Check if email already exists
     existing_user = db.query(User).filter(
@@ -22,42 +24,55 @@ def create_user(db: Session, user: UserCreate):
 
     if existing_user:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
 
-    # Create new user
+    # Hash the password
+    hashed_password = hash_password(user.password)
+
+    # Create new user object
     new_user = User(
         username=user.username,
         email=user.email,
-        password=hash_password(user.password)
+        password=hashed_password
     )
 
+    # Save to database
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
     return new_user
 
-def login_user(db: Session, email: str, password: str):
+
+def login_user(email: str, password: str, db: Session):
+
     user = db.query(User).filter(
         User.email == email
     ).first()
 
     if not user:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
 
-    if not verify_password(password, user.password):
+    password_match = verify_password(
+        password,
+        user.password
+    )
+
+    if not password_match:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
 
     access_token = create_access_token(
-        data={"sub": user.email}
+        data={
+            "sub": user.email
+        }
     )
 
     return {
