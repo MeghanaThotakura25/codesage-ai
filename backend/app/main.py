@@ -1,34 +1,72 @@
 from fastapi import FastAPI
-from fastapi import Depends
-from app.utils.dependencies import get_current_user
-from app.models.user import User
-from fastapi import Depends
-
-
 
 from app.database.connection import engine
 from app.database.base import Base
-from app.models.user import User
-from app.routers.auth import router as auth_router
 
+# Import Routers
+from app.routers.auth import router as auth_router
+from app.routers.review import router as review_router
+
+# Create Database Tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+# Create FastAPI App
+app = FastAPI(
+    title="CodeSage AI API",
+    description="""
+AI-Powered Code Review System built using FastAPI and Google Gemini AI.
 
-app.include_router(auth_router)
+## Features
+- 🔐 JWT Authentication
+- 👤 User Registration & Login
+- 🤖 AI-Powered Code Review
+- 🗄️ PostgreSQL Database
+- 📄 Interactive Swagger Documentation
 
+Tech Stack:
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- JWT Authentication
+- Google Gemini AI
+""",
+    version="1.0.0",
+)
 
-@app.get("/")
+# Root Endpoint
+@app.get("/", tags=["Home"])
 def root():
+    """
+    Welcome endpoint.
+    """
     return {
-        "message": "Welcome to CodeSage AI Backend"
+        "message": "Welcome to CodeSage AI 🚀",
+        "version": "1.0.0",
+        "docs": "/docs"
     }
 
-@app.get("/profile")
-def profile(current_user: User = Depends(get_current_user)):
+
+# Health Check Endpoint
+@app.get("/health", tags=["Health"])
+def health_check():
+    """
+    Check if the API is running.
+    """
     return {
-        "id": current_user.id,
-        "username": current_user.username,
-        "email": current_user.email,
-        "created_at": current_user.created_at
+        "status": "Running",
+        "application": "CodeSage AI"
     }
+
+
+# Register Authentication Routes
+app.include_router(
+    auth_router,
+    tags=["Authentication"]
+)
+
+
+# Register AI Review Routes
+app.include_router(
+    review_router,
+    tags=["AI Code Review"]
+)
